@@ -11,18 +11,18 @@ stringData:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
- name: shortify-rabbitmq
+ name: rabbitmq
  labels:
-   app: shortify-rabbitmq
+   app: rabbitmq
 spec:
  replicas: 1
  selector:
    matchLabels:
-     app: shortify-rabbitmq
+     app: rabbitmq
  template:
    metadata:
      labels:
-       app: shortify-rabbitmq
+       app: rabbitmq
    spec:
      containers:
        - name: rabbitmq
@@ -51,10 +51,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: shortify-rabbitmq
+  name: rabbitmq
 spec:
   selector:
-    app: shortify-rabbitmq
+    app: rabbitmq
   ports:
     - name: amqp
       protocol: TCP
