@@ -1,0 +1,260 @@
+Let's go through the steps to deploy shortify app to OpenShift, provided ZIP folder contains shortify application source code, Dockerfile or deployment artifacts.
+
+---
+
+###  Step 1: Unzip the Project
+
+First, extract the contents of the ZIP file:
+
+```
+unzip Shortify.zip -d shortify
+cd shortify
+```
+
+---
+
+### Step 2: Review the Contents and Check what's inside:
+
+```
+ls -R
+```
+
+---
+
+### Step 4: Create/Open a Project
+
+```
+oc new-project shortify
+```
+
+Or switch to an existing one:
+
+```
+oc project shortify
+```
+
+---
+There is two way to deploy application.I prefered to follow Step 5B.
+
+### Step 5A: (If Dockerfile is present) Build and Deploy using `oc new-build`
+
+```
+oc new-build --name=shortify --binary --strategy=docker
+oc start-build shortify --from-dir=. --follow
+```
+
+Once built, deploy:
+
+```
+oc new-app shortify
+```
+
+### 🧱 Step 5B: (If Dockerfile is present) To deploy this to OpenShift 
+
+Build image, push it to image registry and Deploy thru manifest yaml
+
+1. Build your Docker image for `shortify` service:
+
+```
+# docker login docker.io -u <username> -p <password>
+# pwd
+/root/shortify/Shortify/Shortify
+# ls -lrt
+total 56
+drwxrwxr-x. 2 root root 4096 Feb 21  2024 Properties
+drwxrwxr-x. 3 root root 4096 Feb 21  2024 bin
+drwxrwxr-x. 4 root root 4096 Feb 22  2024 Data
+drwxrwxr-x. 2 root root 4096 Feb 29  2024 Extensions
+-rw-rw-r--. 1 root root  238 Jul 16  2024 Shortify.csproj.user
+drwxrwxr-x. 2 root root 4096 Apr 30 04:33 Migrations
+drwxrwxr-x. 3 root root 4096 Apr 30 11:02 Services
+drwxrwxr-x. 2 root root 4096 Apr 30 11:05 Endpoints
+-rw-rw-r--. 1 root root 2249 Apr 30 11:35 Shortify.csproj
+drwxrwxr-x. 3 root root 4096 Apr 30 11:35 obj
+-rw-rw-r--. 1 root root  125 Apr 30 11:36 appsettings.json
+-rw-rw-r--. 1 root root  397 Apr 30 11:58 Dockerfile
+-rw-rw-r--. 1 root root 1134 Apr 30 12:03 Program.cs
+-rw-rw-r--. 1 root root  137 Apr 30 12:04 appsettings.Development.json
+#
+
+# docker build -t docker.io/shortify_repo/shortify:latest .
+Emulate Docker CLI using podman. Create /etc/containers/nodocker to quiet msg.
+[1/3] STEP 1/3: FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+[1/3] STEP 2/3: WORKDIR /app
+--> d7b451f822a8
+[1/3] STEP 3/3: EXPOSE 80
+--> a33528e7f82e
+[2/3] STEP 1/6: FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+[2/3] STEP 2/6: WORKDIR /src
+--> 6e5a79efab03
+[2/3] STEP 3/6: COPY ["Shortify.csproj", "."]
+--> 0e1bc788dec0
+[2/3] STEP 4/6: RUN dotnet restore "./Shortify.csproj"
+Determining projects to restore...
+Restored /src/Shortify.csproj (in 13.69 sec).
+--> 0450a693c771
+[2/3] STEP 5/6: COPY . .
+--> aa3e7729d1e0
+[2/3] STEP 6/6: RUN dotnet publish "Shortify.csproj" -c Release -o /app/publish
+Determining projects to restore...
+Restored /src/Shortify.csproj (in 558 ms).
+Shortify -> /src/bin/Release/net8.0/Shortify.dll
+Shortify -> /app/publish/
+--> 22a0c3645ffb
+[3/3] STEP 1/4: FROM a33528e7f82e92f25091f59b35054b4d657d49f158b2892ed1bbff9077a6d5bd AS final
+[3/3] STEP 2/4: WORKDIR /app
+--> baf367835c6a
+[3/3] STEP 3/4: COPY --from=build /app/publish .
+--> 533f2d7a09ce
+[3/3] STEP 4/4: ENTRYPOINT ["dotnet", "Shortify.dll"]
+[3/3] COMMIT docker.io/shortify_repo/shortify:latest
+--> db4a1d9642ae
+Successfully tagged docker.io/shortify_repo/shortify:latest
+db4a1d9642ae990969b3583f7be903d1cf894a1a6615767f87bdd64410d08b3d
+```
+	
+2. Push Docker Images to Registry:**
+
+```	
+# docker push docker.io/shortify_repo/shortify:latest
+Emulate Docker CLI using podman. Create /etc/containers/nodocker to quiet msg.
+Getting image source signatures
+Copying blob a95615662a50 skipped: already exists
+Copying blob bdb61834e641 skipped: already exists
+Copying blob eece289f4350 skipped: already exists
+Copying blob b247aa89f742 done   |
+Copying blob de7410b9a9bf skipped: already exists
+Copying blob dec6f7c6e4f9 skipped: already exists
+Copying blob 37d8ef6328fe skipped: already exists
+Copying config db4a1d9642 done   |
+Writing manifest to image destination
+# docker images |grep -i db4a1d9642ae
+Emulate Docker CLI using podman. Create /etc/containers/nodocker to quiet msg.
+docker.io/shortify_repo/shortify                               latest        db4a1d9642ae  52 seconds ago  238 MB
+# ls -lrt
+total 56
+drwxrwxr-x. 2 root root 4096 Feb 21  2024 Properties
+drwxrwxr-x. 3 root root 4096 Feb 21  2024 bin
+drwxrwxr-x. 4 root root 4096 Feb 22  2024 Data
+drwxrwxr-x. 2 root root 4096 Feb 29  2024 Extensions
+-rw-rw-r--. 1 root root  238 Jul 16  2024 Shortify.csproj.user
+drwxrwxr-x. 2 root root 4096 Apr 30 04:33 Migrations
+drwxrwxr-x. 3 root root 4096 Apr 30 11:02 Services
+drwxrwxr-x. 2 root root 4096 Apr 30 11:05 Endpoints
+-rw-rw-r--. 1 root root 2249 Apr 30 11:35 Shortify.csproj
+drwxrwxr-x. 3 root root 4096 Apr 30 11:35 obj
+-rw-rw-r--. 1 root root  125 Apr 30 11:36 appsettings.json
+-rw-rw-r--. 1 root root  397 Apr 30 11:58 Dockerfile
+-rw-rw-r--. 1 root root 1134 Apr 30 12:03 Program.cs
+-rw-rw-r--. 1 root root  137 Apr 30 12:04 appsettings.Development.json
+```
+
+---
+
+### Step 6: Login to OpenShift
+
+Make sure you're logged into the OpenShift cluster:
+
+```
+oc login --token=YOUR_TOKEN --server=https://api.your-cluster-domain:6443
+```
+
+---
+
+### Step 7: Create a Kubernetes Deployment and Service YAML (`shortify-deployment.yaml` and `shortify-service.yaml`):
+
+`shortify-deployment.yaml`:
+
+```
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: shortify
+  namespace: shortify
+  labels:
+    app: shortify
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      deployment: shortify
+  template:
+    metadata:
+      labels:
+        app: shortify
+    spec:
+      containers:
+        - name: shortify
+          image: docker.io/shortify_repo/shortify:latest
+          ports:
+            - containerPort: 80
+              protocol: TCP
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Development
+            - name: ConnectionStrings__DefaultConnection
+              value: Host=postgres;Port=5432;Database=mydb;Username=myuser;Password=mypassword
+            - name: ConnectionStrings__RedisConnection
+              value: 'redis:6379'
+            - name: ConnectionStrings__RabbitMQConnection
+              value: 'amqp://guest:guest@rabbitmq:5672'
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shortify-service
+spec:
+  selector:
+    app: shortify
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+  type: ClusterIP
+```
+
+Apply the YAML files to deploy:
+
+   ```
+   oc apply -f shortify-deployment.yaml
+   oc apply -f shortify-service.yaml
+   ```
+
+Verify deployment:
+
+   ```
+   oc get pods   # Check if the pod is running
+   oc get svc    # Get the service to access your application
+   ```
+
+same way create other services manifest file and deploy.
+
+```
+oc apply -f redis-deployment.yaml
+oc apply -f rabbitmq-deployment.yaml
+oc apply -f postgres-deployment.yaml
+```
+
+---
+
+### Step 8: Expose the App
+
+```
+oc expose svc/shortify
+```
+
+Then get the route:
+
+```
+oc get route shortify
+```
+
+The `HOST/PORT` output will show the accessible URL.
+
+---
+
+### Step 9: Test the Application
+
+Open the route URL in a browser to confirm it's running.
+
+---
