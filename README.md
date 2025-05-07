@@ -37,10 +37,8 @@ Build image, push it to image registry and Deploy thru manifest yaml
 1. Build your Docker image for `shortify` service:
 
 ```
-# docker login docker.io -u <username> -p <password>
-
-# docker build -t docker.io/rajprajapati/shortify:latest .
-```
+docker login docker.io -u <username> -p <password>
+docker build -t docker.io/rajprajapati/shortify:latest .
 --> db4a1d9642ae
 Successfully tagged docker.io/rajprajapati/shortify:latest
 db4a1d9642ae990969b3583f7be903d1cf894a1a6615767f87bdd64410d08b3d
@@ -49,18 +47,13 @@ db4a1d9642ae990969b3583f7be903d1cf894a1a6615767f87bdd64410d08b3d
 2. Push Docker Images to Registry:**
 
 ```	
-# docker push docker.io/rajprajapati/shortify:latest
-
-```
+docker push docker.io/rajprajapati/shortify:latest
 Copying config db4a1d9642 done   |
 Writing manifest to image destination
-```
-# docker images |grep -i db4a1d9642ae
-```
+docker images |grep -i db4a1d9642ae
 Emulate Docker CLI using podman. Create /etc/containers/nodocker to quiet msg.
 docker.io/rajprajapati/shortify                               latest        db4a1d9642ae  52 seconds ago  238 MB
 ```
-
 ---
 
 ### Step 4: Login to OpenShift
