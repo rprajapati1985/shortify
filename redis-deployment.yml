@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
- name: shortify-redis
+ name: redis
  labels:
-   app: shortify-redis
+   app: redis
 spec:
  replicas: 1
  selector:
    matchLabels:
-     app: shortify-redis
+     app: redis
  template:
    metadata:
      labels:
-       app: shortify-redis
+       app: redis
    spec:
      containers:
        - name: redis
@@ -29,10 +29,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
- name: shortify-redis
+ name: redis
 spec:
  selector:
-   app: shortify-redis
+   app: redis
  ports:
    - protocol: TCP
      port: 6379
